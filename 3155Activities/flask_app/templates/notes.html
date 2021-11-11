@@ -9,6 +9,11 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     </head>
     <body>
+        <nav>
+            <a href="/notes"> My Notes </a>
+             ||
+            <a href="/index"> Home </a>
+        </nav>
         <h1>Listing notes</h1>
 
         <table>
@@ -18,7 +23,7 @@
             </tr>
             {% for key, value in notes.items() %}
             <tr>
-                <td>{{ value.title }}</td>
+                <td><a href="note/{{key}}">{{ value.title }}</a></td>
                 <td>{{ value.date }}</td>
             </tr>
             {% endfor %}
