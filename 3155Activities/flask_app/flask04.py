@@ -1,4 +1,4 @@
-# FLASK Tutorial 1 -- We show the bare bones code to get an app up and running
+
 
 # imports
 import os                 # os is used to get environment variables IP & PORT
@@ -7,38 +7,39 @@ from flask import render_template
 from flask import request
 from datetime import date
 from flask import redirect, url_for
+from models import Note as Note
+from models import User as User
+from database import db
 
 
 app = Flask(__name__)     # create an app
-stephenUser = {'name': 'Stephen', 'email':'szargo@uncc.edu'}
-notes = {
-        1: {'title':'First note', 'text':'This is my first note', 'date':'10-1-2020'},
-        2: {'title':'Second note', 'text':'This is my second note', 'date':'10-2-2020'},
-        3: {'title':'Third note', 'text':'This is my third note', 'date':'10-3-2020'}
-    }
+
+stephenUser = db.session.query(User).filter_by(email = 'szargo@uncc.edu')   # Get user object from the database
+notes = db.session.query(Note).all()    # Get note object from database
 
 # @app.route is a decorator. It gives the function "index" special powers.
 # In this case it makes it so anyone going to "your-url/" makes this function
 # get called. What it returns is what is shown as the web page
-@app.route('/index')
+@app.route('/index')    # Landing page
 def index():
 
     return render_template("index.html" , user = stephenUser)
 
-@app.route('/notes')
+@app.route('/notes')    # View page with all notes
 def get_notes():
 
     return render_template('notes.html', notes = notes, user = stephenUser)
 
-@app.route('/note/<note_id>')
+@app.route('/note/<note_id>')   # View individual note
 def get_note(note_id):
+    my_note = db.session.query(Note).filter_by(id = note_id)
+    return render_template('note.html', note = my_note, user = stephenUser)
 
-    return render_template('note.html', note = notes[int(note_id)], user = stephenUser)
-
-@app.route('/notes/new', methods = ['GET', 'POST'])
+@app.route('/notes/new', methods = ['GET', 'POST']) # Post a new note
 def new_note():
     print('request method is ', request.method)
     if request.method == 'POST':
+
         # get title data
         title = request.form['title']
         # get note data
@@ -47,13 +48,19 @@ def new_note():
         today = date.today()
         # format date mm/dd/yyyy
         today = today.strftime("%m-%d-%Y")
-        # get the last ID used and increment by 1
-        id = len(notes)+1
-        # create new note entry
-        notes[id] = {'title': title, 'text': text, 'date': today}
+
+        # create new Note object from data inputted
+        new_record = Note(title, text, today)
+        # add newly created Note object to database
+        db.session.add(new_record)
+        db.session.commit()
+
         # render response - redirect to notes listing
         return redirect(url_for('get_notes'))
     else:
+        # GET request - show new note page
+        # retrieve user from database
+        user = db.session.query(User).filter_by(email = 'szargo@uncc.edu')
         return render_template('new.html', user = stephenUser)
 
 
