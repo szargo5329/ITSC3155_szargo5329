@@ -2,7 +2,7 @@
 
 # imports
 import os                 # os is used to get environment variables IP & PORT
-from flask import Flask   # Flask is the web app that we will customize
+from flask import Flask
 from flask import render_template
 from flask import request
 from datetime import date
@@ -30,9 +30,6 @@ db.init_app(app)
 with app.app_context():
     db.create_all()   # run under the app context
 
-#stephenUser = db.session.query(User).filter_by(email = 'szargo@uncc.edu')   # Get user object from the database
-#notes = db.session.query(Note).all()    # Get note object from database
-
 # @app.route is a decorator. It gives the function "index" special powers.
 # In this case it makes it so anyone going to "your-url/" makes this function
 # get called. What it returns is what is shown as the web page
@@ -40,7 +37,7 @@ with app.app_context():
 def index():
     # get user from database
     stephenUser =  db.session.query(User).filter_by(email='szargo@uncc.edu')
-    return render_template("index.html" , user = stephenUser)
+    return render_template("index.html", user = stephenUser)
 
 @app.route('/notes')    # View page with all notes
 def get_notes():
@@ -56,6 +53,7 @@ def get_note(note_id):
     stephenUser = db.session.query(User).filter_by(email='szargo@uncc.edu')
     # retrieve note from database
     my_note = db.session.query(Note).filter_by(id=note_id)
+
     return render_template('note.html', note = my_note, user = stephenUser)
 
 @app.route('/notes/new', methods = ['GET', 'POST']) # Post a new note
@@ -71,10 +69,9 @@ def new_note():
         today = date.today()
         # format date mm/dd/yyyy
         today = today.strftime("%m-%d-%Y")
-
-        # create new Note object from data inputted
+        # create the new Note object from data inputted
         new_record = Note(title, text, today)
-        # add newly created Note object to database
+        # add the newly created Note object to database
         db.session.add(new_record)
         db.session.commit()
 
