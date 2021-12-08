@@ -90,7 +90,7 @@ def update_note(note_id):
     # retrieve note from database
     my_note = db.session.query(Note).filter_by(id=note_id).one()
 
-    return render_template('note.html', note = my_note, user = stephenUser)
+    return render_template('new.html', note = my_note, user = stephenUser)
 
 
 
