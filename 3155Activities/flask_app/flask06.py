@@ -7,10 +7,11 @@ from flask import render_template
 from flask import request
 from datetime import date
 from flask import redirect, url_for
-from models import Note as Note, LoginForm
+from models import Note as Note
 from models import User as User
+from models import Comment as Comment
 from database import db
-from forms import RegisterForm
+from forms import RegisterForm, LoginForm, CommentForm
 import bcrypt
 from flask import session
 
@@ -64,12 +65,17 @@ def get_notes():
 
 @app.route('/note/<note_id>')   # View individual note
 def get_note(note_id):
-    # retrieve user from database
-    stephenUser = db.session.query(User).filter_by(email='szargo@uncc.edu').one()
-    # retrieve note from database
-    my_note = db.session.query(Note).filter_by(id=note_id).one()
+    # check if a user is saved in session
+    if session.get('user'):
+        # retrieve note from database
+        my_note = db.session.query(Note).filter_by(id=note_id, user_id=session['user_id']).one()
 
-    return render_template('note.html', note = my_note, user = stephenUser)
+        # create a comment form object
+        form = CommentForm()
+
+        return render_template('note.html', note = my_note, user = session['user'], form=form)
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/notes/new', methods = ['GET', 'POST']) # Post a new note page
 def new_note():
@@ -199,6 +205,24 @@ def logout():
         session.clear()
 
     return redirect(url_for('index'))
+
+
+@app.route('/notes/<note_id>/comment', methods=['POST'])
+def new_comment(note_id):
+    if session.get('user'):
+        comment_form = CommentForm()
+        # validate_on_submit only validates using POST
+        if comment_form.validate_on_submit():
+            # get comment data
+            comment_text = request.form['comment']
+            new_record = Comment(comment_text, int(note_id), session['user_id'])
+            db.session.add(new_record)
+            db.session.commit()
+
+        return redirect(url_for('get_note', note_id=note_id))
+
+    else:
+        return redirect(url_for('login'))
 
 
 
