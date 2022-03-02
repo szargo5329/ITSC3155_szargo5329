@@ -1,7 +1,0 @@
-env/
-
-.vscode*
-
-.idea/
-
-__pycache__
